@@ -103,9 +103,11 @@ bool heap_encolar(heap_t *heap, void *elem){
 
 void *heap_ver_max(const heap_t *heap){
 
-    return NULL;
+	if(heap_esta_vacio)
+		return null;
+	
+	return heap->datos[0];
 }
-
 void *heap_desencolar(heap_t *heap){
 
     return NULL;
@@ -185,3 +187,4 @@ void __downheap(void **datos, size_t pos, size_t n, cmp_func_t cmp){
 
     __downheap(datos, pos_max, n, cmp);
 }
+
