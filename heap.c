@@ -1,4 +1,5 @@
 #define CAPACIDAD_INICIAL 20
+#define FACTOR 2
 #define POS_HIJO_IZQ(i) (2*i)+1
 #define POS_HIJO_DER(i) (2*i)+2
 #define POS_PADRE(i) (i-1)/2
@@ -75,7 +76,7 @@ heap_t *heap_crear_arr(void *arreglo[], size_t n, cmp_func_t cmp){
 }
 
 void heap_destruir(heap_t *heap, void (*destruir_elemento)(void *e)){
-f
+
     if(destruir_elemento){
         for(size_t i = 0; i < heap->cantidad; i++){
             destruir_elemento(heap->datos[i]);
@@ -98,19 +99,56 @@ bool heap_esta_vacio(const heap_t *heap){
 
 bool heap_encolar(heap_t *heap, void *elem){
 
+    if(heap->cantidad == heap->capacidad){
+        if(!__heap_redimensionar(heap, heap->capacidad * FACTOR)){
+            return false;
+        }
+    }
+
+    heap->datos[heap->cantidad] = elem;
+    __upheap(heap->datos, heap->cantidad, heap->cmp);
+    heap->cantidad++;
+
     return true;
 }
 
 void *heap_ver_max(const heap_t *heap){
 
-	if(heap_esta_vacio)
-		return null;
+	if(heap_esta_vacio(heap)) return NULL;
 	
 	return heap->datos[0];
 }
+
 void *heap_desencolar(heap_t *heap){
 
-    return NULL;
+    if(heap_esta_vacio(heap)) return NULL;
+
+    void *max = heap_ver_max(heap);
+
+    __swap(&heap->datos[0], &heap->datos[heap->cantidad - 1]);
+    heap->cantidad--;
+    __downheap(heap->datos, 0, heap->cantidad, heap->cmp);
+
+    if(heap->cantidad <= heap->capacidad / (FACTOR*FACTOR) && CAPACIDAD_INICIAL <= heap->capacidad / FACTOR){
+        __heap_redimensionar(heap, heap->capacidad / FACTOR);
+    }
+
+    return max;
+}
+
+/* *****************************************************************
+*                          HEAPSORT
+ * *****************************************************************/
+
+void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
+
+    __heapify(elementos, cant, cmp);
+
+    while(cant >= 1){
+        __swap(&elementos[0], &elementos[cant - 1]);
+        cant--;
+        __downheap(elementos, 0, cant, cmp);
+    }
 }
 
 /* *****************************************************************
@@ -187,4 +225,3 @@ void __downheap(void **datos, size_t pos, size_t n, cmp_func_t cmp){
 
     __downheap(datos, pos_max, n, cmp);
 }
-

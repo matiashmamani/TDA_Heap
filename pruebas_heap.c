@@ -1,17 +1,10 @@
 #define VOLUMEN 100000
-#define POS_PRIMERO 0
 
 #include "heap.h"
 #include "testing.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-void limpiar_entero(void *dato){
-    int *p_int;
-    p_int = (int*)dato;
-    *p_int = 0;
-}
 
 int intcmp(const void *a, const void *b){
 
@@ -25,84 +18,82 @@ int intcmp(const void *a, const void *b){
 
 static void prueba_heap_vacia(void) {
 
-    printf("1. INICIO DE PRUEBAS CON HEAP VACIA\n");
-    heap_t *heap = heap_crear(NULL);
-    print_test("- Crear heap vacía", heap != NULL);
-    print_test("- Heap esta vacía", heap_esta_vacia(heap));
-    print_test("- Ver primero de la heap vacia devuelve NULL", heap_ver_max(heap) == NULL);
-    print_test("- desencolar en heap vacia devuelve NULL", heap_desencolar(heap) == NULL);
+    printf("1. INICIO DE PRUEBAS CON HEAP VACIO\n");
+    heap_t *heap = heap_crear(intcmp);
+    print_test("- Crear heap vacío", heap);
+    print_test("- Heap esta vacío", heap_esta_vacio(heap));
+    print_test("- La cantidad de elementos del heap es correcta", !heap_cantidad(heap));
+    print_test("- Ver máximo del heap vacio devuelve NULL", !heap_ver_max(heap));
+    print_test("- Desencolar en heap vacio devuelve NULL", !heap_desencolar(heap));
     heap_destruir(heap, NULL);
-    print_test("- Destruir heap vacía", true);
+    print_test("- Destruir heap vacío", true);
 }
 
-static void prueba_heap_algunos_elementos_estaticos(void) {
+static void prueba_heap_elementos_estaticos(void) {
 
-    void *p_null = NULL;
-    int n_null = 5;
+    int vec_int[] = {3, -5, -3, 2, 8, 1, 10, -9, 0, 2};
+    int n_int = 10;
+    int *p_int;
     
-    printf("2. INICIO DE PRUEBAS CON ALGUNOS ELEMENTOS ESTATICOS\n");
-    printf("HEAP QUE ALMACENA VALORES NULL:\n");
-    heap_t *heap = heap_crear(intcmp));
-    print_test("- Crear heap", heap != NULL);
+    printf("2. INICIO DE PRUEBAS CON HEAP DE ELEMENTOS ESTATICOS\n");
+    heap_t *heap = heap_crear(intcmp);
+    print_test("- Crear heap", heap);
 
     bool ok = true;
     bool ok_ver_max = true;
-    for(int i = 0; i < n_null; i++){
-        ok &= heap_encolar(heap, p_null);
-        ok_ver_max &= (heap_ver_max(heap) == NULL);
+    int max = 0;
+    for(int i = 0; i < n_int; i++){
+        ok &= heap_encolar(heap, &vec_int[i]);
+        if(vec_int[i] > max) max = vec_int[i];
+        p_int = heap_ver_max(heap);
+        ok_ver_max &= (*p_int == max);
     }
+
     print_test("- Se pudieron encolar todos los elementos", ok);
-    print_test("- El primer elemento de la heap es NULL en cada encolado", ok_ver_max);
-    print_test("- Heap no esta vacía", !heap_esta_vacia(heap));
+    print_test("- El primer elemento del heap es el máximo en cada encolado", ok_ver_max);
+    print_test("- Heap no esta vacío", !heap_esta_vacio(heap));
+    print_test("- La cantidad de elementos del heap es correcta", heap_cantidad(heap) == n_int);
 
     ok = true;
-    for(int i = 0; i < n_null; i++){
-        p_null = heap_desencolar(heap);
-        ok &= (p_null == NULL);
+    for(int i = 0; i < n_int; i++){
+        p_int = heap_ver_max(heap);
+        ok &= (p_int == heap_desencolar(heap));
     }
+
     print_test("- Se pudieron desencolar todos los elementos y mantienen invariante de heap", ok);
-    print_test("- Heap quedó vacía después de desencolar todo", heap_esta_vacia(heap));
-    print_test("- Ver primero de heap devuelve NULL después de desencolar todo", heap_ver_max(heap) == NULL);
-    print_test("- desencolar en heap vacía devuelve NULL", heap_desencolar(heap) == NULL);
-    for(int i = 0; i < n_null; i++){
-        heap_encolar(heap, p_null);
+    print_test("- Heap quedó vacío después de desencolar todo", heap_esta_vacio(heap));
+    print_test("- La cantidad de elementos del heap es correcta", !heap_cantidad(heap));
+    print_test("- Ver máximo de heap devuelve NULL después de desencolar todo", !heap_ver_max(heap));
+    print_test("- Desencolar en heap vacío devuelve NULL", !heap_desencolar(heap));
+    
+    for(int i = 0; i < n_int; i++){
+        heap_encolar(heap, &vec_int[i]);
     }
-    print_test("- Heap se llenó de vuelta", !heap_esta_vacia(heap));
+
+    print_test("- Heap se llenó de vuelta", !heap_esta_vacio(heap));
     heap_destruir(heap, NULL);
     print_test("- Destruir heap (con NULL)", true);
 }
 
-static void prueba_heap_algunos_elementos_dinamicos(void){
+static void prueba_heap_elementos_dinamicos(void){
 
     int **vec_int;
-    int n_int  = 3;
-
-    // Creo arreglo de arreglos de enteros
-    vec_int = malloc((size_t)n_int * sizeof(int*));
-    for(int i = 0; i < n_int; i++){
-        vec_int[i] = malloc((size_t)n_int * sizeof(int));
-        for(int j = 0; j < n_int; j++){
-            vec_int[i][j] = i;
-        }
-    }
-
-    printf("3. INICIO DE PRUEBAS CON ALGUNOS ELEMENTOS DINAMICOS\n");
-    printf("HEAP QUE ALMACENA VECTORES DINAMICOS:\n");
-    heap_t *heap = heap_crear();
-    print_test("- Crear heap", heap != NULL);
-
-    bool ok = true;
-    bool ok_ver_max = true;
+    size_t n_int  = 3;
     int *p_int;
-    for(int i = 0; i < n_int; i++){
-        ok &= heap_encolar(heap, vec_int[i]);
-        p_int = heap_ver_max(heap);
-        ok_ver_max &= (p_int == vec_int[POS_PRIMERO]);
-    }
-    print_test("- Se pudieron encolar todos los elementos", ok);
-    print_test("- El primer elemento de la heap es correcto en cada encolado", ok_ver_max);
-    print_test("- Heap no esta vacía", !heap_esta_vacia(heap));
 
+    vec_int = malloc(n_int * sizeof(int*));
+    for(int i = 0; i < n_int; i++){
+        vec_int[i] = malloc(sizeof(int));
+        *(vec_int[i]) = i;
+    }
+
+    printf("3. INICIO DE PRUEBAS CON HEAP DE ELEMENTOS DINAMICOS\n");
+    heap_t *heap = heap_crear_arr((void**)vec_int, n_int, intcmp);
+    print_test("- Crear heap", heap);
+    print_test("- Heap no esta vacío", !heap_esta_vacio(heap));
+    print_test("- La cantidad de elementos del heap es correcta", heap_cantidad(heap) == n_int);
+    p_int = heap_ver_max(heap);
+    print_test("- El primer elemento del heap es el máximo", *p_int == 2);
     heap_destruir(heap, free);
     print_test("- Destruir heap (con free())", true);
     free(vec_int);
@@ -111,46 +102,95 @@ static void prueba_heap_algunos_elementos_dinamicos(void){
 static void prueba_heap_volumen(void) {
 
     printf("4. INICIO DE PRUEBAS DE VOLUMEN\n");
-    heap_t *heap = heap_crear();
-    print_test("- Crear heap", heap != NULL);
+    heap_t *heap = heap_crear(intcmp);
+    print_test("- Crear heap", heap);
     
     bool ok = true;
     bool ok_ver_max = true;
     int *p_int;
     int vec_int[VOLUMEN];
+    int max = 0;
     for(int i = 0; i < VOLUMEN; i++){
         vec_int[i] = i;
         ok &= heap_encolar(heap, &vec_int[i]);
+        if(vec_int[i] > max) max = vec_int[i];
         p_int = heap_ver_max(heap);
-        ok_ver_max &= (*p_int == vec_int[POS_PRIMERO]);
+        ok_ver_max &= (*p_int == max);
     } 
     print_test("- Se pudieron encolar todos los elementos", ok);
-    print_test("- El primer elemento de la heap es correcto en cada encolado", ok_ver_max);
-    print_test("- Heap no esta vacía", !heap_esta_vacia(heap));
+    print_test("- El primer elemento del heap es correcto en cada encolado", ok_ver_max);
+    print_test("- Heap no esta vacío", !heap_esta_vacio(heap));
+    print_test("- La cantidad de elementos del heap es correcta", heap_cantidad(heap) == VOLUMEN);
 
     ok = true;
     p_int = NULL;
     for(int i = 0; i < VOLUMEN; i++){
-        p_int = heap_desencolar(heap);
-        ok &= (*p_int == vec_int[i]);
+        p_int = heap_ver_max(heap);
+        ok &= (p_int == heap_desencolar(heap));
     }
     print_test("- Se pudieron desencolar todos los elementos y se mantiene el invariante de heap", ok);
-    print_test("- Heap quedó vacía después de desencolar todo", heap_esta_vacia(heap));
-    print_test("- Ver primero de la heap devuelve NULL después de desencolar todo", heap_ver_max(heap) == NULL);
-    print_test("- desencolar en heap vacía devuelve NULL", heap_desencolar(heap) == NULL);
+    print_test("- Heap quedó vacío después de desencolar todo", heap_esta_vacio(heap));
+    print_test("- Ver máximo del heap devuelve NULL después de desencolar todo", !heap_ver_max(heap));
+    print_test("- Desencolar en heap vacío devuelve NULL", !heap_desencolar(heap));
     
     for(int i = 0; i < VOLUMEN; i++){
         vec_int[i] = i;
         heap_encolar(heap, &vec_int[i]);
     }
-    print_test("- Heap se llenó de vuelta", !heap_esta_vacia(heap));
-    heap_destruir(heap, limpiar_entero);
-    print_test("- Destruir heap (con funcion())", true);
+    print_test("- Heap se llenó de vuelta", !heap_esta_vacio(heap));
+    heap_destruir(heap, NULL);
+    print_test("- Destruir heap", true);
+}
+
+
+static void prueba_heap_sort(void) {
+
+    int vec_desord[] = {3, -5, -3, 2, 8, 1, 10, -9, 0, 2};
+    int vec_ord[] = {-9, -5, -3, 0, 1, 2, 2, 3, 8, 10};
+    int **vec_int;
+    size_t n_int = 10;
+
+    vec_int = malloc(n_int * sizeof(int*));
+    for(size_t i = 0; i < n_int; i++){
+        vec_int[i] = malloc(sizeof(int));
+        *(vec_int[i]) = vec_desord[i];
+    }
+
+    printf("5. INICIO DE PRUEBAS HEAP SORT\n");
+    print_test("- Vector dinámico creado. Todos los elementos están desordenados", true);
+    
+    heap_sort((void**)vec_int, n_int, intcmp);
+
+    bool ok = true;
+    for(int i = 0; i < n_int; i++){
+        ok &= (*(vec_int[i]) == vec_ord[i]);
+    }
+    print_test("- Los elementos quedaron perfectamente ordenados luego de aplicar heapsort", ok);
+        
+    for(size_t i = 0; i < n_int; i++){
+        free(vec_int[i]);
+    }
+    free(vec_int);
+    print_test("- Vector dinámico destruido", true);
 }
 
 void pruebas_heap_estudiante() {
     prueba_heap_vacia();
-    prueba_heap_algunos_elementos_estaticos();
-    prueba_heap_algunos_elementos_dinamicos();
+    prueba_heap_elementos_estaticos();
+    prueba_heap_elementos_dinamicos();
     prueba_heap_volumen();
+    prueba_heap_sort();
 }
+
+/*
+ * Función main() que llama a la función de pruebas.
+ */
+
+#ifndef CORRECTOR  // Para que no dé conflicto con el main() del corrector.
+
+int main(void) {
+    pruebas_heap_estudiante();
+    return failure_count() > 0;  // Indica si falló alguna prueba.
+}
+
+#endif
